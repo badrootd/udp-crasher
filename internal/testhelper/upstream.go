@@ -6,15 +6,18 @@ import (
 )
 
 type Upstream struct {
+	Connections chan net.Addr
+	clientBufs  map[string](chan []byte)
 	listener    net.PacketConn
 	logger      testing.TB
-	Connections chan net.Addr
 }
 
 func NewUpstream(t testing.TB, ignoreData bool) *Upstream {
 	result := &Upstream{
 		logger: t,
 	}
+
+	result.clientBufs = make(map[string](chan []byte))
 
 	result.listen()
 	result.accept(ignoreData)
@@ -33,19 +36,27 @@ func (u *Upstream) listen() {
 func (u *Upstream) accept(ignoreData bool) {
 	u.Connections = make(chan net.Addr)
 	go func(u *Upstream) {
-		buf := make([]byte, 32768)
-		_, addr, err := u.listener.ReadFrom(buf)
-		if err != nil {
-			u.logger.Fatalf("Unable to accept first UDP message: %v", err)
-		}
-		if ignoreData {
-			//buf := make([]byte, 4000)
-			//for err == nil {
-			//_, err = conn.Read(buf)
-			//}
-		} else {
-			u.logger.Logf("New client: %s", addr.String())
-			u.Connections <- addr
+		var err error
+		for err == nil {
+			buf := make([]byte, 32768)
+			n, addr, err := u.listener.ReadFrom(buf)
+			if err != nil {
+				u.logger.Logf("Connectino has been closed: %v", err)
+				break
+			}
+
+			if !ignoreData {
+				c, ok := u.clientBufs[addr.String()]
+				if !ok {
+					readerCh := make(chan []byte, 1000)
+					u.clientBufs[addr.String()] = readerCh
+					c = readerCh
+					u.Connections <- addr
+					u.logger.Logf("New client: %s", addr.String())
+				}
+
+				c <- buf[:n]
+			}
 		}
 	}(u)
 }
@@ -60,4 +71,20 @@ func (u *Upstream) Addr() string {
 
 func (u *Upstream) Write(payload []byte, conn net.Addr) (int, error) {
 	return u.listener.WriteTo(payload, conn)
+}
+func (u *Upstream) ReadAtLeast(conn net.Addr, buf []byte, n int) (int, error) {
+	c, ok := u.clientBufs[conn.String()]
+
+	if ok {
+		read := 0
+		for v := range c {
+			cn := copy(buf[read:], v)
+			read += cn
+			if read >= n {
+				break
+			}
+		}
+	}
+
+	return len(buf), nil
 }
