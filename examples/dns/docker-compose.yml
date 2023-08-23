@@ -1,0 +1,11 @@
+version: '3'
+services:
+  dns-server:
+    image: technitium/dns-server
+    ports:
+      - "5453:53/udp"
+      - "5380:5380"
+    environment:
+      - TZ=UTC
+    restart: always
+
