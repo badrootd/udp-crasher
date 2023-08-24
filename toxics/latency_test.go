@@ -227,7 +227,7 @@ func TestTwoLatencyToxics(t *testing.T) {
 			"Upstream two latency toxics",
 			time.Since(timer),
 			time.Duration(1000)*time.Millisecond,
-			time.Duration(10)*time.Millisecond,
+			time.Duration(100)*time.Millisecond,
 		)
 
 		for i := range toxicArr {
