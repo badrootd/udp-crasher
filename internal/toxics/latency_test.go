@@ -3,7 +3,6 @@ package toxics_test
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"gopkg.in/tomb.v1"
 	"io"
 	"net"
@@ -370,14 +369,6 @@ func WithEchoServer(t *testing.T, f func(string, chan []byte)) {
 			return
 		}
 
-		//scan := bufio.NewScanner(src)
-		//if scan.Scan() {
-		//	received := append(scan.Bytes(), '\n')
-		//	response <- received
-
-		//src.Write(received)
-		//}
-
 		received := buffer[:n]
 		response <- received
 		msg := []byte(strings.Replace(string(received), "a", "b", -1))
@@ -385,8 +376,6 @@ func WithEchoServer(t *testing.T, f func(string, chan []byte)) {
 		if err != nil {
 			t.Error("Failed to write client back", err)
 		}
-
-		fmt.Printf("Echo written %s to client %s\n", string(msg), clientAddr)
 	}()
 
 	f(ln.LocalAddr().String(), response)

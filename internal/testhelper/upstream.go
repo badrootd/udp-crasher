@@ -41,7 +41,7 @@ func (u *Upstream) accept(ignoreData bool) {
 			buf := make([]byte, 32768)
 			n, addr, err := u.listener.ReadFrom(buf)
 			if err != nil {
-				u.logger.Logf("Connectino has been closed: %v", err)
+				u.logger.Logf("Connection has been closed: %v", err)
 				break
 			}
 

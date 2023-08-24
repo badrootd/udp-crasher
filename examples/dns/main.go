@@ -52,7 +52,7 @@ func setupProxy(upstream string) (string, error) {
 	}
 	err := proxy.Toxics.AddToxic(tw)
 	if err != nil {
-		return "", fmt.Errorf("AddToxic returned error:", err)
+		return "", fmt.Errorf("AddToxic returned error: %v", err)
 	}
 
 	return proxy.Listen, nil
