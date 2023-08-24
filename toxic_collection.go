@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/rs/zerolog"
 	"io"
 	"sync"
 
-	"udpcrusher/internal/stream"
-	"udpcrusher/internal/toxics"
+	"github.com/badrootd/udpcrusher/stream"
+	"github.com/badrootd/udpcrusher/toxics"
+
+	"github.com/rs/zerolog"
 )
 
 // ToxicCollection contains a list of toxics that are chained together. Each proxy

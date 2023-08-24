@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"udpcrusher/internal/stream"
+	"github.com/badrootd/udpcrusher/stream"
 )
 
 // A Toxic is something that can be attatched to a link to modify the way

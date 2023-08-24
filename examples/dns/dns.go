@@ -3,9 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/miekg/dns"
 	"io"
 	"net/http"
+
+	"github.com/miekg/dns"
 )
 
 func queryDNS(dnsAddr string, domain string) (string, error) {

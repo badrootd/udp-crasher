@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"time"
-	toxiproxy "udpcrusher/internal"
-	"udpcrusher/internal/stream"
-	"udpcrusher/internal/toxics"
+
+	toxiproxy "github.com/badrootd/udpcrusher"
+	"github.com/badrootd/udpcrusher/stream"
+
+	"github.com/badrootd/udpcrusher/toxics"
 )
 
 const (

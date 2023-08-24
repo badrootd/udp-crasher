@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/badrootd/udpcrusher/stream"
+
 	"github.com/rs/zerolog"
 	tomb "gopkg.in/tomb.v1"
-
-	"udpcrusher/internal/stream"
 )
 
 // Proxy represents the proxy in its entirety with all its links. The main

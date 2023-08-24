@@ -3,19 +3,19 @@ package toxics_test
 import (
 	"bytes"
 	"context"
-	"gopkg.in/tomb.v1"
 	"io"
 	"net"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
-	toxiproxy "udpcrusher/internal"
-	"udpcrusher/internal/stream"
-	"udpcrusher/internal/testhelper"
 
-	//"udpcrusher/internal/testhelper"
-	"udpcrusher/internal/toxics"
+	"gopkg.in/tomb.v1"
+
+	toxiproxy "github.com/badrootd/udpcrusher"
+	"github.com/badrootd/udpcrusher/stream"
+	"github.com/badrootd/udpcrusher/testhelper"
+	"github.com/badrootd/udpcrusher/toxics"
 )
 
 const udp_payload_size = 9216 // darwin max UDP package size is 9216 (sysctl net.inet.udp.maxdgram)

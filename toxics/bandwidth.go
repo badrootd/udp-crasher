@@ -3,8 +3,8 @@ package toxics
 import (
 	"fmt"
 	"time"
-	"udpcrusher/internal/stream"
 
+	"github.com/badrootd/udpcrusher/stream"
 	"github.com/rs/zerolog/log"
 )
 

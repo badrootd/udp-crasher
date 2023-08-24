@@ -4,14 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/badrootd/udpcrusher/stream"
+	"github.com/badrootd/udpcrusher/toxics"
+
 	"io"
 	"time"
 
 	"github.com/rs/zerolog"
-
-	"udpcrusher/internal/toxics"
-
-	"udpcrusher/internal/stream"
 )
 
 // ToxicLinks are single direction pipelines that connects an input and output via

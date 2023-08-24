@@ -6,9 +6,10 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"udpcrusher/internal/stream"
-	"udpcrusher/internal/testhelper"
-	"udpcrusher/internal/toxics"
+
+	"github.com/badrootd/udpcrusher/stream"
+	"github.com/badrootd/udpcrusher/testhelper"
+	"github.com/badrootd/udpcrusher/toxics"
 )
 
 func TestBandwidthToxic(t *testing.T) {
