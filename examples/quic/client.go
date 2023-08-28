@@ -30,36 +30,45 @@ func NewClient(addr string) (*client, error) {
 
 func (c *client) PingPong(text string) time.Duration {
 	var err error
-	start := time.Now()
-	err = c.send(text)
+	c.stream, err = c.conn.OpenStream()
 	if err != nil {
-		fmt.Println(err)
 		return 0
 	}
 
-	msgCh, errCh := c.receive(context.Background())
+	timeoutGlobal := time.After(10 * time.Second)
 
-	select {
-	case err = <-errCh:
-		fmt.Println(err)
-	case msg := <-msgCh:
-		fmt.Printf("Client read: %s\n", msg)
-	case <-time.After(time.Second * 3):
-		fmt.Println("Client read timeout")
+	start := time.Now()
+	go func() {
+		for {
+			message := Message{Text: text}
+			message.Write(c.stream)
+			select {
+			case <-timeoutGlobal:
+				return
+			default:
+			}
+		}
+	}()
+
+	for {
+		msgCh, errCh := c.receive(context.Background())
+
+		select {
+		case err = <-errCh:
+			fmt.Printf("Client err: %v\n", err)
+		case msg := <-msgCh:
+			fmt.Printf("Client read: %s\n", msg)
+		case <-time.After(time.Second * 3):
+			fmt.Println("Client read timeout")
+		case <-timeoutGlobal:
+			fmt.Println("Timeout")
+			return time.Since(start)
+		}
 	}
-
-	return time.Since(start)
 }
 
 func (c *client) send(text string) error {
-	var err error
-	c.stream, err = c.conn.OpenStream()
-	if err != nil {
-		return err
-	}
-
 	message := Message{Text: text}
-
 	return message.Write(c.stream)
 }
 

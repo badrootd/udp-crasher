@@ -19,11 +19,24 @@ const (
 	protocol = "simpleproto"
 )
 
-func EchoServer() error {
+type EchoServer struct {
+	started chan bool
+}
+
+func NewServer() *EchoServer {
+	server := EchoServer{}
+	server.started = make(chan bool)
+
+	return &server
+}
+
+func (s *EchoServer) Start() error {
 	listener, err := quic.ListenAddr(addr, generateTLSConfig(), nil)
 	if err != nil {
+		s.started <- false
 		return err
 	}
+	s.started <- true
 
 	conn, err := listener.Accept(context.Background())
 	if err != nil {
@@ -69,7 +82,11 @@ type loggingWriter struct {
 func (w loggingWriter) Write(b []byte) (int, error) {
 	br := bytes.NewReader(b)
 	m := Message{}
-	m.Read(br)
-	fmt.Printf("Server received: '%s'\n", m.Text)
+	err := m.Read(br)
+	if err != nil {
+		fmt.Printf("Server err %v\n", err)
+	} else {
+		fmt.Printf("Server read %s\n", m)
+	}
 	return w.Writer.Write(b)
 }
