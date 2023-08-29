@@ -1,23 +1,27 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
 	"github.com/quic-go/quic-go"
 	"io"
 	"math/big"
+	"time"
 )
 
 const (
 	addr     = "localhost:4242"
 	protocol = "simpleproto"
 )
+
+type Message struct {
+	Text      string
+	Timestamp time.Time
+}
 
 type EchoServer struct {
 	started chan bool
@@ -45,10 +49,10 @@ func (s *EchoServer) Start() error {
 
 	stream, err := conn.AcceptStream(context.Background())
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	_, err = io.Copy(loggingWriter{stream}, stream)
+	_, err = io.Copy(stream, stream)
 	return err
 }
 
@@ -73,20 +77,4 @@ func generateTLSConfig() *tls.Config {
 		Certificates: []tls.Certificate{tlsCert},
 		NextProtos:   []string{protocol},
 	}
-}
-
-type loggingWriter struct {
-	io.Writer
-}
-
-func (w loggingWriter) Write(b []byte) (int, error) {
-	br := bytes.NewReader(b)
-	m := Message{}
-	err := m.Read(br)
-	if err != nil {
-		fmt.Printf("Server err %v\n", err)
-	} else {
-		fmt.Printf("Server read %s\n", m)
-	}
-	return w.Writer.Write(b)
 }

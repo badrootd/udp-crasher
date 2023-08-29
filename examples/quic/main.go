@@ -5,6 +5,7 @@ import (
 	toxiproxy "github.com/badrootd/udpcrusher"
 	"github.com/badrootd/udpcrusher/stream"
 	"github.com/badrootd/udpcrusher/toxics"
+	"time"
 )
 
 func main() {
@@ -17,7 +18,9 @@ func main() {
 	}()
 	<-srv.started
 
-	proxyAddr, err := setupProxy(addr)
+	// increasing rateLimit improves throughput
+	rateLimit := 35
+	proxyAddr, err := setupProxy(addr, int64(rateLimit))
 	if err != nil {
 		fmt.Printf("Failed to setup UDP crusher: %v\n", err)
 		return
@@ -30,16 +33,17 @@ func main() {
 	}
 	defer cl.Close()
 
-	rtt := cl.PingPong("Hello world")
+	duration := 15 * time.Second
+	count := cl.PingPong("Hello world", duration)
 
-	fmt.Printf("Time: %s\n", rtt)
+	fmt.Printf("Messages processed %d, rateLimit %d, duration %s\n", count, rateLimit, duration)
 }
 
-func setupProxy(upstream string) (string, error) {
+func setupProxy(upstream string, rateLimit int64) (string, error) {
 	proxy := toxiproxy.NewProxy("quic-test", "localhost:0", upstream)
 	proxy.Start()
 
-	toxic := &toxics.BandwidthToxic{Rate: int64(15)}
+	toxic := &toxics.BandwidthToxic{Rate: rateLimit}
 	tw := &toxics.ToxicWrapper{
 		Toxic:     toxic,
 		Type:      "bandwidth",
