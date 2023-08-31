@@ -5,25 +5,25 @@ UDP Crusher is a Golang library designed to simulate UDP network conditions. It 
 ### Usage
 
 ```go
-    //create proxy
-    proxy := toxiproxy.NewProxy("dns-test", "localhost:0", upstream)
+    upstream := "8.8.8.8:53"
+
+    proxy := toxiproxy.NewProxy("proxy-name", "localhost:0", upstream)
     proxy.Start()
     
     toxic := &toxics.LatencyToxic{
-        Latency: 750
+        Latency: 750 // in milliseconds
     }
 
-	//Toxic metadata
     tw := &toxics.ToxicWrapper{
         Toxic:     toxic,
         Name:      "latency_up",
         Type:      "latency",
         Direction: stream.Upstream,
     }
+    _ = proxy.Toxics.AddToxic(tw)
 
-    _ := proxy.Toxics.AddToxic(tw)
-
-    proxy.Listen
+	// your client application code
+    _, _ = net.Dial("udp", proxy.Listen)
 ```
 
 ### Why not just fork Toxiproxy?
