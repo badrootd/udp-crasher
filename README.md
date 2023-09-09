@@ -30,10 +30,6 @@ UDP Crusher is a Golang library designed to simulate UDP network conditions. It 
 
 Currently toxiproxy has already tightly coupled with golang TCP socket API and cannot be extended that easily.
 
-### Which parts are removed from Toxiproxy?
-
-Certain components, such as the metric collector and JSON toxic serialization/deserialization, have been removed from the original Toxiproxy project for the sake of development. These can be re-implemented in the future if needed.
-
 ### Who can find it useful?
 
 Anyone who develops client/protocol implementations over UDP or applications using above in golang, for example QUIC, Aeron, DNS and etc

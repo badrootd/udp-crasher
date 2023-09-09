@@ -68,6 +68,7 @@ func NewToxicLink(
 
 // Start the link with the specified toxics.
 func (link *ToxicLink) Start(
+	server *ApiServer,
 	name string,
 	source io.Reader,
 	dest io.WriteCloser,
@@ -75,7 +76,13 @@ func (link *ToxicLink) Start(
 	logger := link.Logger
 	logger.Debug().Str("direction", link.Direction()).Msg("Setup connection")
 
-	go link.read(source)
+	labels := []string{
+		link.Direction(),
+		link.proxy.Name,
+		link.proxy.Listen,
+		link.proxy.Upstream}
+
+	go link.read(labels, server, source)
 
 	for i, toxic := range link.toxics.chain[link.direction] {
 		if stateful, ok := toxic.Toxic.(toxics.StatefulToxic); ok {
@@ -99,26 +106,25 @@ func (link *ToxicLink) Start(
 		go link.stubs[i].Run(toxic)
 	}
 
-	go link.write(name, dest)
+	go link.write(labels, name, server, dest)
 }
 
 // read copies bytes from a source to the link's input channel.
-func (link *ToxicLink) read(
-	source io.Reader,
-) {
+func (link *ToxicLink) read(metricLabels []string, server *ApiServer, source io.Reader) {
 	logger := link.Logger
 	bytes, err := io.Copy(link.input, source)
 	if err != nil {
 		logger.Warn().Int64("bytes", bytes).Err(err).Msg("Source terminated")
 	}
+	if server != nil && server.Metrics.proxyMetricsEnabled() {
+		server.Metrics.ProxyMetrics.ReceivedBytesTotal.
+			WithLabelValues(metricLabels...).Add(float64(bytes))
+	}
 	link.input.Close()
 }
 
 // write copies bytes from the link's output channel to a destination.
-func (link *ToxicLink) write(
-	name string,
-	dest io.WriteCloser,
-) {
+func (link *ToxicLink) write(metricLabels []string, name string, server *ApiServer, dest io.WriteCloser) {
 	logger := link.Logger.
 		With().
 		Str("component", "ToxicLink").
@@ -134,6 +140,9 @@ func (link *ToxicLink) write(
 			Int64("bytes", bytes).
 			Err(err).
 			Msg("Could not write to destination")
+	} else if server != nil && server.Metrics.proxyMetricsEnabled() {
+		server.Metrics.ProxyMetrics.SentBytesTotal.
+			WithLabelValues(metricLabels...).Add(float64(bytes))
 	}
 
 	dest.Close()

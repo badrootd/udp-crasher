@@ -1,6 +1,7 @@
 package toxiproxy
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -85,44 +86,54 @@ func (c *ToxicCollection) AddToxic(wrapper *toxics.ToxicWrapper) error {
 
 	wrapper.Toxicity = 1.0
 
-	// Default to a downstream toxic with a toxicity of 1.
-	//wrapper := &toxics.ToxicWrapper{
-	//	Stream:   "downstream",
-	//	Toxicity: 1.0,
-	//	Toxic:    new(toxics.NoopToxic),
-	//}
-
-	//wrapper.Direction, err = stream.ParseDirection(wrapper.Stream)
-	//if err != nil {
-	//	return ErrInvalidStream
-	//}
-
 	if wrapper.Name == "" {
 		wrapper.Name = fmt.Sprintf("%s_%s", wrapper.Type, wrapper.Stream)
 	}
-
-	//if toxics.New(wrapper) == nil {
-	//	return ErrInvalidToxicType
-	//}
 
 	found := c.findToxicByName(wrapper.Name)
 	if found != nil {
 		return ErrToxicAlreadyExists
 	}
 
-	// Parse attributes because we now know the toxics type.
-	//attrs := &struct {
-	//	Attributes interface{} `json:"attributes"`
-	//}{
-	//	wrapper.Toxic,
-	//}
-	//err = json.NewDecoder(&buffer).Decode(attrs)
-	//if err != nil {
-	//	return joinError(err, ErrBadRequestBody)
-	//}
-
 	c.chainAddToxic(wrapper)
 	return nil
+}
+
+func (c *ToxicCollection) AddToxicJson(data io.Reader) (*toxics.ToxicWrapper, error) {
+	var buffer bytes.Buffer
+
+	wrapper := &toxics.ToxicWrapper{
+		Stream:   "downstream",
+		Toxicity: 1.0,
+		Toxic:    new(toxics.NoopToxic),
+	}
+
+	err := json.NewDecoder(io.TeeReader(data, &buffer)).Decode(wrapper)
+	if err != nil {
+		return nil, joinError(err, ErrBadRequestBody)
+	}
+
+	wrapper.Direction, err = stream.ParseDirection(wrapper.Stream)
+	if err != nil {
+		return nil, ErrInvalidStream
+	}
+
+	if toxics.New(wrapper) == nil {
+		return nil, ErrInvalidToxicType
+	}
+
+	// Parse attributes because we now know the toxics type.
+	attrs := &struct {
+		Attributes interface{} `json:"attributes"`
+	}{
+		wrapper.Toxic,
+	}
+	err = json.NewDecoder(&buffer).Decode(attrs)
+	if err != nil {
+		return nil, joinError(err, ErrBadRequestBody)
+	}
+
+	return wrapper, c.AddToxic(wrapper)
 }
 
 func (c *ToxicCollection) UpdateToxicJson(
@@ -178,6 +189,7 @@ func (c *ToxicCollection) RemoveToxic(ctx context.Context, name string) error {
 }
 
 func (c *ToxicCollection) StartLink(
+	server *ApiServer,
 	name string,
 	input io.Reader,
 	output io.WriteCloser,
@@ -194,7 +206,7 @@ func (c *ToxicCollection) StartLink(
 	}
 
 	link := NewToxicLink(c.proxy, c, direction, logger)
-	link.Start(name, input, output)
+	link.Start(server, name, input, output)
 	c.links[name] = link
 }
 

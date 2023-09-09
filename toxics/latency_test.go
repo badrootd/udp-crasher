@@ -3,8 +3,13 @@ package toxics_test
 import (
 	"bytes"
 	"context"
+	"flag"
+	"github.com/badrootd/udpcrusher/collectors"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/rs/zerolog"
 	"io"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -313,16 +318,16 @@ func TestLatencyToxicBandwidth(t *testing.T) {
 }
 
 func NewTestProxy(name, upstream string) *toxiproxy.Proxy {
-	//log := zerolog.Nop()
-	//if flag.Lookup("test.v").DefValue == "true" {
-	//	log = zerolog.New(os.Stdout).With().Caller().Timestamp().Logger()
-	//}
-	//srv := toxiproxy.NewServer(
-	//	toxiproxy.NewMetricsContainer(prometheus.NewRegistry()),
-	//	log,
-	//)
-	//srv.Metrics.ProxyMetrics = collectors.NewProxyMetricCollectors()
-	proxy := toxiproxy.NewProxy(name, "localhost:0", upstream)
+	log := zerolog.Nop()
+	if flag.Lookup("test.v").DefValue == "true" {
+		log = zerolog.New(os.Stdout).With().Caller().Timestamp().Logger()
+	}
+	srv := toxiproxy.NewServer(
+		toxiproxy.NewMetricsContainer(prometheus.NewRegistry()),
+		log,
+	)
+	srv.Metrics.ProxyMetrics = collectors.NewProxyMetricCollectors()
+	proxy := toxiproxy.NewProxy(srv, name, "localhost:0", upstream)
 
 	return proxy
 }

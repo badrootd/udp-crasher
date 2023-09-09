@@ -40,7 +40,7 @@ func main() {
 }
 
 func setupProxy(upstream string, rateLimit int64) (string, error) {
-	proxy := toxiproxy.NewProxy("quic-test", "localhost:0", upstream)
+	proxy := toxiproxy.NewProxy(nil, "quic-test", "localhost:0", upstream)
 	proxy.Start()
 
 	toxic := &toxics.BandwidthToxic{Rate: rateLimit}

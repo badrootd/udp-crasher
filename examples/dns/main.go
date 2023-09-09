@@ -42,7 +42,7 @@ func main() {
 }
 
 func setupProxy(upstream string) (string, error) {
-	proxy := toxiproxy.NewProxy("dns-test", "localhost:0", upstream)
+	proxy := toxiproxy.NewProxy(nil, "dns-test", "localhost:0", upstream)
 	proxy.Start()
 
 	toxic := &toxics.LatencyToxic{Latency: 750}

@@ -34,6 +34,7 @@ type Proxy struct {
 	tomb        tomb.Tomb
 	connections ConnectionList
 	Toxics      *ToxicCollection `json:"-"`
+	apiServer   *ApiServer
 	Logger      *zerolog.Logger
 
 	portToClient map[string]UDPReader
@@ -82,7 +83,7 @@ func (c *ConnectionList) Unlock() {
 
 var ErrProxyAlreadyStarted = errors.New("Proxy already started")
 
-func NewProxy(name, listen, upstream string) *Proxy {
+func NewProxy(server *ApiServer, name, listen, upstream string) *Proxy {
 	l := setupLogger()
 
 	proxy := &Proxy{
@@ -91,6 +92,7 @@ func NewProxy(name, listen, upstream string) *Proxy {
 		Upstream:    upstream,
 		started:     make(chan error),
 		connections: ConnectionList{list: make(map[string]net.PacketConn)},
+		apiServer:   server,
 		Logger:      &l,
 	}
 	proxy.Toxics = NewToxicCollection(proxy)
@@ -251,8 +253,8 @@ func (proxy *Proxy) server() {
 		proxy.connections.list[name+"upstream"] = upstream
 		proxy.connections.list[name+"downstream"] = proxy.listener
 		proxy.connections.Unlock()
-		proxy.Toxics.StartLink(name+"upstream", clientReader, upstream, stream.Upstream)
-		proxy.Toxics.StartLink(name+"downstream", upstream, clientWriter, stream.Downstream)
+		proxy.Toxics.StartLink(proxy.apiServer, name+"upstream", clientReader, upstream, stream.Upstream)
+		proxy.Toxics.StartLink(proxy.apiServer, name+"downstream", upstream, clientWriter, stream.Downstream)
 	}
 }
 
