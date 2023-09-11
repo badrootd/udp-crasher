@@ -1,6 +1,6 @@
 # UDP Crusher
 
-UDP Crusher is a Golang library designed to simulate UDP network conditions. It is inspired by the [Toxiproxy](https://github.com/Shopify/toxiproxy) project, with code copied and adapted filling the gap for UDP simulation as Toxiproxy primarily focuses on TCP.
+UDP Crusher is a Golang proxy library designed to simulate UDP network conditions. It is inspired by the [Toxiproxy](https://github.com/Shopify/toxiproxy) project, with code copied and adapted filling the gap for UDP simulation as Toxiproxy primarily focuses on TCP.
 
 ### Usage
 
