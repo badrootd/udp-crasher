@@ -1,0 +1,6 @@
+### Run
+
+```shell
+$ go run .
+```
+
